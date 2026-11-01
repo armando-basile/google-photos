@@ -113,12 +113,6 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         _state.value = UiState.Gallery
     }
 
-    fun clearLibrary() {
-        library.clear()
-        _openCollection.value = null
-        startPicking()
-    }
-
     fun openCollection(id: String) { _openCollection.value = id }
 
     fun closeCollection() { _openCollection.value = null }

@@ -3,7 +3,7 @@
     <string name="consent_access">Foto TV chiede a Google l\'accesso in sola lettura alle foto e agli album che SCEGLI TU in Google Foto (Photos Picker). Non può vedere il resto della tua libreria.</string>
     <string name="consent_storage">Le foto scelte vengono salvate solo su questa TV e mostrate qui. Il token di accesso è conservato cifrato su questa TV.</string>
     <string name="consent_sharing">I tuoi dati non sono condivisi, venduti, usati per pubblicità o per addestrare modelli di IA, e nulla viene inviato a server gestiti dallo sviluppatore.</string>
-    <string name="consent_control">Puoi cancellare tutto in qualsiasi momento con Svuota e Scollega account, e revocare l\'accesso dal tuo Account Google.</string>
+    <string name="consent_control">Puoi cancellare tutto in qualsiasi momento con Elimina dalla TV (per cartella) e Scollega account, e revocare l\'accesso dal tuo Account Google.</string>
     <string name="consent_limited_use">L\'uso delle informazioni ricevute dalle API di Google Foto rispetta la Google API Services User Data Policy, inclusi i requisiti di Limited Use.</string>
     <string name="consent_privacy">Informativa sulla privacy: armando-basile.github.io/google-photos/privacy.html</string>
     <string name="consent_accept">Accetto e continuo</string>

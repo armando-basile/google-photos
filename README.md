@@ -38,7 +38,7 @@ mostra sulla TV, senza digitare password con il telecomando.
 - **Selezione dal telefono** tramite il Picker ufficiale di Google Foto: mostra le foto recenti e permette di cercare per parole chiave, date o titolo di un album.
 - **Griglia** navigabile con il telecomando.
 - **Visore a schermo intero** con frecce sinistra e destra, e **presentazione automatica** con OK.
-- **Aggiungi, svuota e scollega** direttamente dall'app.
+- **Aggiungi foto, elimina una cartella dalla TV e scollega l'account** direttamente dall'app.
 - **Aggiornamenti dalle release di GitHub**: controllo manuale o all'avvio, con verifica SHA-256 e della firma prima dell'installazione.
 - Il token di accesso è salvato **cifrato** con l'Android Keystore.
 

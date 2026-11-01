@@ -122,7 +122,7 @@ fun AppRoot(vm: AppViewModel) {
                         onOpen = vm::openCollection,
                         onSync = vm::syncCollection,
                         onAdd = vm::startPicking,
-                        onClear = vm::clearLibrary,
+                        onDelete = vm::deleteCollection,
                         onSignOut = vm::signOut,
                         updateTag = (update as? UpdateState.Available)?.info?.tag,
                         onSettings = vm::openSettings,
@@ -364,11 +364,12 @@ private fun CollectionsScreen(
     onOpen: (String) -> Unit,
     onSync: (String) -> Unit,
     onAdd: () -> Unit,
-    onClear: () -> Unit,
+    onDelete: (String) -> Unit,
     onSignOut: () -> Unit,
     updateTag: String?,
     onSettings: () -> Unit,
 ) {
+    var confirmId by remember { mutableStateOf<String?>(null) }
     // Calcolato a ogni apertura dell'app e quando cambiano le raccolte.
     val stale = remember(collections) {
         val limit = System.currentTimeMillis() - STALE_AFTER_MS
@@ -386,7 +387,6 @@ private fun CollectionsScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(onClick = onAdd) { Text("Aggiungi foto") }
-            Button(onClick = onClear) { Text("Svuota la TV") }
             Button(onClick = onSignOut) { Text("Scollega account") }
             Button(onClick = onSettings) {
                 Text(if (updateTag != null) "Impostazioni (aggiornamento $updateTag)" else "Impostazioni")
@@ -408,6 +408,11 @@ private fun CollectionsScreen(
                 Button(onClick = { onSync(stale.first().id) }) { Text("Sincronizza") }
             }
         }
+        Text(
+            "Elimina dalla TV rimuove solo le copie sulla TV: su Google Foto non cambia nulla.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp),
+        )
         Spacer(Modifier.height(24.dp))
         LazyVerticalGrid(
             columns = GridCells.Adaptive(280.dp),
@@ -417,6 +422,7 @@ private fun CollectionsScreen(
         ) {
             items(collections, key = { it.id }) { collection ->
                 val inCollection = photos.filter { it.collectionId == collection.id }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(
                     onClick = { onOpen(collection.id) },
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(8.dp)),
@@ -448,6 +454,15 @@ private fun CollectionsScreen(
                             )
                         }
                     }
+                }
+                if (confirmId == collection.id) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { confirmId = null; onDelete(collection.id) }) { Text("Sì, elimina") }
+                        Button(onClick = { confirmId = null }) { Text("Annulla") }
+                    }
+                } else {
+                    Button(onClick = { confirmId = collection.id }) { Text("Elimina dalla TV") }
+                }
                 }
             }
         }

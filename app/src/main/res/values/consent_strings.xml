@@ -3,7 +3,7 @@
     <string name="consent_access">Foto TV asks Google for read-only access to the photos and albums that YOU choose in Google Photos (Photos Picker). It cannot see the rest of your library.</string>
     <string name="consent_storage">The photos you choose are saved only on this TV and shown here. Your sign-in token is stored encrypted on this TV.</string>
     <string name="consent_sharing">Your data is not shared, sold, used for ads or to train AI models, and nothing is sent to servers run by the developer.</string>
-    <string name="consent_control">You can delete everything at any time with Clear and Disconnect account, and revoke access in your Google Account.</string>
+    <string name="consent_control">You can delete everything at any time with Elimina dalla TV (delete from TV, per folder) and Disconnect account, and revoke access in your Google Account.</string>
     <string name="consent_limited_use">The use of information received from Photos APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements.</string>
     <string name="consent_privacy">Privacy policy: armando-basile.github.io/google-photos/privacy.html</string>
     <string name="consent_accept">I agree and continue</string>
