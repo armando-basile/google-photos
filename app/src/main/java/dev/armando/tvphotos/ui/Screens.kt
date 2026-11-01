@@ -76,8 +76,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val SLIDESHOW_MS = 6000L
-
 @Composable
 fun AppRoot(vm: AppViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -142,7 +140,9 @@ fun AppRoot(vm: AppViewModel) {
                     )
                 }
                 viewer?.let { start ->
-                    if (open != null) ViewerScreen(openPhotos, start, vm::fileOf, onClose = vm::closeViewer)
+                    if (open != null) {
+                        ViewerScreen(openPhotos, start, vm::fileOf, onRotate = vm::rotatePhoto, onClose = vm::closeViewer)
+                    }
                 }
                 if (settingsOpen) {
                     SettingsScreen(
@@ -381,7 +381,7 @@ private fun CollectionsScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Le mie foto (${photos.size} in ${collections.size} raccolte)",
+                "Le mie foto (${photos.size} in ${collections.size} ${if (collections.size == 1) "cartella" else "cartelle"})",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f),
             )
@@ -400,8 +400,8 @@ private fun CollectionsScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    if (stale.size == 1) "1 raccolta non sincronizzata da più di $STALE_AFTER_DAYS giorni: “${stale.first().name}”"
-                    else "${stale.size} raccolte non sincronizzate da più di $STALE_AFTER_DAYS giorni",
+                    if (stale.size == 1) "1 cartella non sincronizzata da più di $STALE_AFTER_DAYS giorni: “${stale.first().name}”"
+                    else "${stale.size} cartelle non sincronizzate da più di $STALE_AFTER_DAYS giorni",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
@@ -550,59 +550,5 @@ private fun PhotoGrid(photos: List<LocalPhoto>, fileOf: (LocalPhoto) -> java.io.
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ViewerScreen(
-    photos: List<LocalPhoto>,
-    startIndex: Int,
-    fileOf: (LocalPhoto) -> java.io.File,
-    onClose: () -> Unit,
-) {
-    var index by remember { mutableIntStateOf(startIndex) }
-    var playing by remember { mutableStateOf(false) }
-    val focus = remember { FocusRequester() }
-    val count = photos.size
-
-    BackHandler(onBack = onClose)
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    LaunchedEffect(playing, count) {
-        while (playing && count > 0) {
-            delay(SLIDESHOW_MS)
-            index = (index + 1) % count
-        }
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .onPreviewKeyEvent { e ->
-                if (e.type != KeyEventType.KeyDown || count == 0) return@onPreviewKeyEvent false
-                when (e.key) {
-                    Key.DirectionRight -> { index = (index + 1) % count; true }
-                    Key.DirectionLeft -> { index = (index - 1 + count) % count; true }
-                    Key.DirectionCenter, Key.Enter, Key.MediaPlayPause -> { playing = !playing; true }
-                    else -> false
-                }
-            }
-            .focusRequester(focus)
-            .focusable(),
-    ) {
-        photos.getOrNull(index)?.let { photo ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current).data(fileOf(photo)).size(1920, 1080).build(),
-                contentDescription = photo.name,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        Text(
-            "${index + 1} / $count  ·  OK: ${if (playing) "ferma" else "avvia"} presentazione",
-            style = MaterialTheme.typography.labelLarge,
-            color = Color.White.copy(alpha = 0.7f),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-        )
     }
 }

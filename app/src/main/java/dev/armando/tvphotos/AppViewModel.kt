@@ -138,6 +138,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun renameCollection(id: String, name: String) = library.renameCollection(id, name)
 
+    fun rotatePhoto(photo: LocalPhoto) = library.rotate(photo.file)
+
     /** Aggiunge le foto scelte a una cartella esistente, senza toccare quelle già presenti. */
     fun pickInto(id: String) = pick(PickTarget.Existing(id, replace = false))
 

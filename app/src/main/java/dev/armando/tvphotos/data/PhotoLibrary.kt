@@ -27,7 +27,13 @@ data class LocalPhoto(
     val name: String? = null,
     val createTime: String? = null,
     val collectionId: String = DEFAULT_COLLECTION,
+    /** Rotazione oraria scelta dall'utente: 0, 90, 180 o 270 gradi. */
+    val rotation: Int = 0,
 )
+
+/** Per data di scatto crescente; le foto senza data vanno in fondo. */
+private fun List<LocalPhoto>.byDateAscending(): List<LocalPhoto> =
+    sortedWith(compareBy<LocalPhoto>({ it.createTime == null }, { it.createTime }))
 
 /** Una selezione fatta con il Picker: la si può sincronizzare di nuovo o eliminare. */
 @Serializable
@@ -90,7 +96,7 @@ class PhotoLibrary(context: Context) {
                 )
                 runCatching { api.downloadImage(item.mediaFile!!.baseUrl, fileOf(photo)) }
                     .onSuccess {
-                        _photos.value = (_photos.value + photo).sortedByDescending { it.createTime.orEmpty() }
+                        _photos.value = (_photos.value + photo).byDateAscending()
                         added++
                         if (added % 10 == 0) save()
                     }
@@ -113,6 +119,12 @@ class PhotoLibrary(context: Context) {
         }
         onProgress(todo.size, todo.size)
         ImportResult(id, added, removed)
+    }
+
+    /** Ruota di 90° in senso orario la foto con quel file e ricorda la scelta. */
+    fun rotate(file: String) {
+        _photos.value = _photos.value.map { if (it.file == file) it.copy(rotation = (it.rotation + 90) % 360) else it }
+        save()
     }
 
     /** Un nome vuoto non cambia nulla; il nome è limitato a 60 caratteri. */
@@ -145,7 +157,7 @@ class PhotoLibrary(context: Context) {
                 LibraryIndex(listOf(PhotoCollection(DEFAULT_COLLECTION, "Foto importate", System.currentTimeMillis())), it)
             }
             ?: return LibraryIndex()
-        val photos = index.photos.filter { File(dir, it.file).exists() }
+        val photos = index.photos.filter { File(dir, it.file).exists() }.byDateAscending()
         val collections = index.collections.filter { c -> photos.any { it.collectionId == c.id } }
         return LibraryIndex(collections, photos)
     }
