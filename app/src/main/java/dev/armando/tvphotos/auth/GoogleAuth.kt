@@ -1,6 +1,5 @@
 package dev.armando.tvphotos.auth
 
-import dev.armando.tvphotos.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,7 +21,11 @@ private data class TokenResponse(
     @SerialName("refresh_token") val refreshToken: String? = null,
 )
 
-class GoogleAuth(private val http: OkHttpClient, private val store: TokenStore) {
+class GoogleAuth(
+    private val http: OkHttpClient,
+    private val store: TokenStore,
+    private val config: () -> OAuthConfig,
+) {
     private val json = Json { ignoreUnknownKeys = true }
     private val mutex = Mutex()
     private var access: String? = null
@@ -35,7 +38,7 @@ class GoogleAuth(private val http: OkHttpClient, private val store: TokenStore) 
             "grant_type" to "authorization_code",
             "code" to code,
             "code_verifier" to verifier,
-            "redirect_uri" to BuildConfig.PAIRING_PAGE_URL,
+            "redirect_uri" to config().pageUrl,
         )
         store.refreshToken = resp.refreshToken ?: throw IOException("Google non ha restituito il refresh token")
         mutex.withLock { remember(resp) }
@@ -66,9 +69,10 @@ class GoogleAuth(private val http: OkHttpClient, private val store: TokenStore) 
 
     private suspend fun tokenRequest(vararg fields: Pair<String, String>): TokenResponse =
         withContext(Dispatchers.IO) {
+            val cfg = config()
             val body = FormBody.Builder().apply {
-                add("client_id", BuildConfig.GOOGLE_CLIENT_ID)
-                if (BuildConfig.GOOGLE_CLIENT_SECRET.isNotBlank()) add("client_secret", BuildConfig.GOOGLE_CLIENT_SECRET)
+                add("client_id", cfg.clientId)
+                if (cfg.clientSecret.isNotBlank()) add("client_secret", cfg.clientSecret)
                 fields.forEach { (k, v) -> add(k, v) }
             }.build()
             val request = Request.Builder().url("https://oauth2.googleapis.com/token").post(body).build()

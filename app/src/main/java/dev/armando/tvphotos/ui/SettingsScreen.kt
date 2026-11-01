@@ -23,11 +23,18 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.armando.tvphotos.BuildConfig
+import dev.armando.tvphotos.auth.OAuthConfig
 import dev.armando.tvphotos.update.UpdateManager
 import dev.armando.tvphotos.update.UpdateState
 
 @Composable
-fun SettingsScreen(updates: UpdateManager, onClose: () -> Unit) {
+fun SettingsScreen(
+    updates: UpdateManager,
+    config: OAuthConfig,
+    onConfigure: () -> Unit,
+    onResetCredentials: () -> Unit,
+    onClose: () -> Unit,
+) {
     val state by updates.state.collectAsStateWithLifecycle()
     val onStartup by updates.checkOnStartup.collectAsStateWithLifecycle()
     val first = remember { FocusRequester() }
@@ -58,6 +65,19 @@ fun SettingsScreen(updates: UpdateManager, onClose: () -> Unit) {
                 Button(onClick = { updates.setCheckOnStartup(!onStartup) }) {
                     Text("Controlla all'avvio: ${if (onStartup) "sì" else "no"}")
                 }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                when {
+                    config.isCustom -> "Credenziali Google: personali (${config.clientIdHint})"
+                    config.isConfigured -> "Credenziali Google: predefinite dell'app"
+                    else -> "Credenziali Google: non configurate"
+                },
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(onClick = onConfigure) { Text("Imposta credenziali dal telefono") }
+                if (config.isCustom) Button(onClick = onResetCredentials) { Text("Ripristina predefinite") }
             }
             Button(onClick = onClose) { Text("Indietro") }
         }

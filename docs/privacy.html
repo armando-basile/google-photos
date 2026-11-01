@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Foto TV - Informativa sulla privacy / Privacy policy</title>
+<meta name="description" content="Informativa sulla privacy di Foto TV, app Android TV per mostrare sulla Fire TV le foto scelte da Google Foto. / Privacy policy of Foto TV.">
+<link rel="icon" type="image/png" href="icon.png">
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 0; padding: 1.5rem; }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin-bottom: .2rem; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; }
+  .meta { opacity: .7; font-size: .9rem; }
+  nav a { margin-right: 1rem; }
+  hr { margin: 3rem 0; border: 0; border-top: 1px solid #8884; }
+  code { word-break: break-all; }
+</style>
+</head>
+<body>
+<main>
+<nav><a href="#it">Italiano</a><a href="#en">English</a><a href="./">Foto TV</a></nav>
+
+<section id="it" lang="it">
+<h1>Informativa sulla privacy di Foto TV</h1>
+<p class="meta">Ultimo aggiornamento: 1 novembre 2026</p>
+
+<p>Foto TV è un'app Android TV open source che mostra sulla Fire TV le foto che scegli in Google Foto.
+Questa informativa spiega quali dati tratta l'app, dove restano e come cancellarli.
+Titolare e sviluppatore: Armando Basile (<a href="https://github.com/armando-basile">armando-basile</a> su GitHub).</p>
+
+<h2>In sintesi</h2>
+<ul>
+  <li>Foto TV non ha server propri: non invio, non raccolgo e non conservo i tuoi dati altrove.</li>
+  <li>Le foto che scegli e le credenziali di accesso restano <strong>solo sulla tua TV</strong>.</li>
+  <li>Nessuna pubblicità, nessuna analisi d'uso, nessun tracciamento, nessuna vendita o cessione di dati.</li>
+</ul>
+
+<h2>Quali dati vengono trattati</h2>
+<ul>
+  <li><strong>Foto selezionate in Google Foto.</strong> Tramite la Google Photos Picker API l'app riceve solo le foto e gli album che scegli tu
+      dal telefono (anche album condivisi), con i metadati essenziali: identificativo, data, nome file e tipo. Non accede al resto della tua libreria.
+      L'app scarica le foto scelte in una cartella privata sulla TV, accessibile solo all'app, per mostrarle.</li>
+  <li><strong>Token di accesso.</strong> Dopo il consenso, Google fornisce un token di aggiornamento. Resta sulla TV, cifrato con l'Android Keystore,
+      ed è usato solo per chiedere a Google l'accesso alle foto che hai scelto.</li>
+  <li><strong>Credenziali OAuth personali (facoltative).</strong> Se inserisci il tuo ID client e client secret, restano sulla TV, cifrati.</li>
+  <li><strong>Dati tecnici di rete.</strong> L'app contatta i servizi di Google (<code>accounts.google.com</code>, <code>oauth2.googleapis.com</code>,
+      <code>photospicker.googleapis.com</code>, <code>googleusercontent.com</code>) e, per gli aggiornamenti, GitHub (<code>api.github.com</code> e il download degli APK).
+      Questi servizi possono vedere il normale indirizzo IP della connessione, secondo le loro informative.</li>
+</ul>
+<p>L'app non legge il tuo indirizzo email, il nome, i contatti o la posizione, e non usa l'identificativo pubblicitario del dispositivo.</p>
+
+<h2>Come vengono usati i dati</h2>
+<p>I dati servono esclusivamente a mostrarti sulla TV le foto che hai scelto e a mantenere il collegamento al tuo account Google.
+Non sono usati per pubblicità, profilazione, addestramento di modelli di intelligenza artificiale o altri scopi, e non sono letti da persone.</p>
+
+<h2>Come avviene il collegamento con Google</h2>
+<p>La TV mostra un codice QR. Il telefono apre una pagina statica ospitata su GitHub Pages (<code>armando-basile.github.io/google-photos</code>),
+che esegue solo codice nel tuo browser e ti porta alla schermata di accesso di Google. Terminato l'accesso, la stessa pagina inoltra
+il codice di autorizzazione alla TV tramite la rete locale. La pagina non salva né registra quel codice; come ogni sito, può essere servita da GitHub,
+che tratta i dati tecnici di accesso secondo la <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">propria informativa</a>.
+Anche l'eventuale modulo per inserire credenziali personali è servito dalla TV sulla rete locale e non passa da internet.</p>
+
+<h2>Condivisione dei dati</h2>
+<p>I dati non sono condivisi con terzi, salvo i servizi indicati sopra, necessari al funzionamento (Google per l'accesso alle foto, GitHub per gli aggiornamenti).</p>
+
+<h2>Uso dei dati ricevuti da Google (Limited Use)</h2>
+<p>L'uso delle informazioni ricevute dalle API di Google Foto da parte di Foto TV rispetta la
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+inclusi i requisiti di Limited Use.</p>
+
+<h2>Conservazione e cancellazione</h2>
+<ul>
+  <li><strong>Svuota</strong> (nell'app) elimina dalla TV tutte le foto importate.</li>
+  <li><strong>Scollega account</strong> elimina dalla TV foto e token di accesso.</li>
+  <li>Disinstallare l'app o cancellarne i dati dalle impostazioni della TV rimuove tutto ciò che l'app ha salvato.</li>
+  <li>Per revocare l'accesso anche lato Google, apri le <a href="https://myaccount.google.com/permissions">impostazioni dell'Account Google</a>
+      e rimuovi l'accesso a Foto TV. Le sessioni di selezione create dall'app vengono eliminate dall'app stessa dopo l'importazione.</li>
+</ul>
+
+<h2>Sicurezza</h2>
+<p>Le comunicazioni con Google e GitHub avvengono in HTTPS. Token e credenziali sono cifrati sulla TV. Gli aggiornamenti dell'app vengono scaricati
+solo da GitHub e verificati (SHA-256 e firma) prima dell'installazione.</p>
+
+<h2>Minori</h2>
+<p>Foto TV non è rivolta ai minori di 13 anni e non raccoglie consapevolmente dati su di loro.</p>
+
+<h2>Modifiche e contatti</h2>
+<p>Questa informativa può essere aggiornata; la data in alto indica l'ultima versione e le modifiche sono tracciate nel
+<a href="https://github.com/armando-basile/google-photos">repository pubblico</a>.
+Per domande o richieste apri una segnalazione su <a href="https://github.com/armando-basile/google-photos/issues">GitHub Issues</a>.</p>
+</section>
+
+<hr>
+
+<section id="en" lang="en">
+<h1>Foto TV privacy policy</h1>
+<p class="meta">Last updated: 1 November 2026</p>
+
+<p>Foto TV is an open-source Android TV app that shows on a Fire TV the photos you choose in Google Photos.
+This policy explains what data the app handles, where it stays and how to delete it.
+Controller and developer: Armando Basile (<a href="https://github.com/armando-basile">armando-basile</a> on GitHub).</p>
+
+<h2>Summary</h2>
+<ul>
+  <li>Foto TV has no servers of its own: I do not send, collect or store your data anywhere else.</li>
+  <li>The photos you choose and your sign-in credentials stay <strong>on your TV only</strong>.</li>
+  <li>No ads, no analytics, no tracking, and your data is never sold or transferred.</li>
+</ul>
+
+<h2>What data is handled</h2>
+<ul>
+  <li><strong>Photos you select in Google Photos.</strong> Through the Google Photos Picker API the app receives only the photos and albums you choose on your
+      phone (shared albums included), with essential metadata: identifier, date, file name and type. It cannot access the rest of your library.
+      The selected photos are downloaded to a private folder on the TV, accessible only to the app, in order to display them.</li>
+  <li><strong>Access token.</strong> After you give consent, Google issues a refresh token. It stays on the TV, encrypted with the Android Keystore,
+      and is used only to ask Google for access to the photos you chose.</li>
+  <li><strong>Your own OAuth credentials (optional).</strong> If you enter your own client ID and client secret, they stay on the TV, encrypted.</li>
+  <li><strong>Network technical data.</strong> The app contacts Google services (<code>accounts.google.com</code>, <code>oauth2.googleapis.com</code>,
+      <code>photospicker.googleapis.com</code>, <code>googleusercontent.com</code>) and, for updates, GitHub (<code>api.github.com</code> and APK downloads).
+      These services can see the usual IP address of the connection, under their own policies.</li>
+</ul>
+<p>The app does not read your email address, name, contacts or location, and does not use the device advertising ID.</p>
+
+<h2>How data is used</h2>
+<p>Data is used only to show you on the TV the photos you chose and to keep the connection to your Google account.
+It is not used for advertising, profiling, training machine-learning or AI models, or any other purpose, and it is not read by humans.</p>
+
+<h2>How the Google sign-in works</h2>
+<p>The TV shows a QR code. Your phone opens a static page hosted on GitHub Pages (<code>armando-basile.github.io/google-photos</code>)
+that only runs code in your browser and takes you to Google's sign-in screen. After sign-in, the same page forwards the authorization code
+to the TV over your local network. The page does not store or log that code; like any website, it is served by GitHub, which processes
+technical access data under its <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">own privacy statement</a>.
+The optional form for entering your own credentials is served by the TV on the local network and does not go through the internet.</p>
+
+<h2>Data sharing</h2>
+<p>Data is not shared with third parties, except for the services listed above that are needed for the app to work (Google for photo access, GitHub for updates).</p>
+
+<h2>Use of data received from Google (Limited Use)</h2>
+<p>Foto TV's use of information received from Google Photos APIs adheres to the
+<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+including the Limited Use requirements.</p>
+
+<h2>Retention and deletion</h2>
+<ul>
+  <li><strong>Svuota</strong> (Clear, in the app) deletes all imported photos from the TV.</li>
+  <li><strong>Scollega account</strong> (Disconnect account) deletes photos and the access token from the TV.</li>
+  <li>Uninstalling the app or clearing its data in the TV settings removes everything the app saved.</li>
+  <li>To also revoke access on Google's side, open your <a href="https://myaccount.google.com/permissions">Google Account settings</a>
+      and remove Foto TV's access. Picker sessions created by the app are deleted by the app after the import.</li>
+</ul>
+
+<h2>Security</h2>
+<p>Communication with Google and GitHub uses HTTPS. Tokens and credentials are encrypted on the TV. App updates are downloaded only from GitHub and
+verified (SHA-256 and signature) before installation.</p>
+
+<h2>Children</h2>
+<p>Foto TV is not directed to children under 13 and does not knowingly collect data about them.</p>
+
+<h2>Changes and contact</h2>
+<p>This policy may be updated; the date above shows the latest version and changes are tracked in the
+<a href="https://github.com/armando-basile/google-photos">public repository</a>.
+For questions or requests, open an issue on <a href="https://github.com/armando-basile/google-photos/issues">GitHub Issues</a>.</p>
+</section>
+</main>
+</body>
+</html>

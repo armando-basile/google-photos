@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Foto TV - Google Foto sulla Fire TV</title>
-<meta name="description" content="Le tue foto di Google Foto, anche gli album condivisi, sulla Fire TV Stick. App Android TV open source.">
+<meta name="description" content="Foto TV: free, open-source Android TV app that shows on your Fire TV the photos you pick from Google Photos, shared albums included. / Le foto scelte da Google Foto sulla Fire TV.">
 <link rel="icon" type="image/png" href="icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Foto TV">
@@ -22,20 +22,103 @@
 <meta name="twitter:description" content="Le tue foto di Google Foto, anche gli album condivisi, sulla Fire TV Stick.">
 <meta name="twitter:image" content="https://armando-basile.github.io/google-photos/social-preview.png">
 <style>
-  body { font-family: system-ui, sans-serif; margin: 0; display: grid; place-items: center; min-height: 100vh; background: #202124; color: #e8eaed; }
-  main { max-width: 28rem; padding: 2rem; text-align: center; }
-  h1 { font-size: 1.4rem; }
-  a { color: #8ab4f8; }
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 0; padding: 1.5rem; }
+  main { max-width: 46rem; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 1rem; }
+  header img { width: 72px; height: 72px; border-radius: 16px; }
+  h1 { font-size: 1.8rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin-top: 2rem; }
+  .tag { margin: .2rem 0 0; opacity: .8; }
+  nav a { margin-right: 1rem; }
+  hr { margin: 3rem 0; border: 0; border-top: 1px solid #8884; }
+  #status { text-align: center; margin-top: 20vh; }
 </style>
 </head>
 <body>
 <main>
-  <h1 id="title">Collegamento in corso...</h1>
-  <p id="msg"></p>
-  <p id="links" hidden>
-    <a href="https://github.com/armando-basile/google-photos/releases/latest">Scarica l'ultimo APK</a> &middot;
-    <a href="https://github.com/armando-basile/google-photos">Codice sorgente</a>
-  </p>
+  <section id="status" hidden>
+    <h1 id="title"></h1>
+    <p id="msg"></p>
+  </section>
+
+  <div id="landing">
+    <nav><a href="#en">English</a><a href="#it">Italiano</a><a href="privacy.html">Privacy</a>
+      <a href="https://github.com/armando-basile/google-photos">Source code</a></nav>
+
+    <section id="en" lang="en">
+      <header>
+        <img src="icon.png" alt="Foto TV icon">
+        <div>
+          <h1>Foto TV</h1>
+          <p class="tag">Show the photos you pick from Google Photos, shared albums included, on your Fire TV.</p>
+        </div>
+      </header>
+
+      <h2>What it does</h2>
+      <p>Foto TV is a free, open-source Android TV app for Amazon Fire TV. You choose photos or albums in Google Photos from your phone,
+        and the app displays them on the TV in a grid, a full-screen viewer and an automatic slideshow.</p>
+
+      <h2>How it works</h2>
+      <ol>
+        <li>The TV shows a QR code. Scan it with your phone.</li>
+        <li>Sign in with Google and approve read-only access to the photos you choose
+          (scope <code>photospicker.mediaitems.readonly</code>, Google Photos Picker API).</li>
+        <li>In Google Photos, pick the photos or albums you want on the TV.</li>
+        <li>The selected photos are saved in private storage on the TV and shown there.</li>
+      </ol>
+
+      <h2>Your data</h2>
+      <ul>
+        <li>The app only receives the photos you explicitly select. It cannot see the rest of your library.</li>
+        <li>Photos and sign-in tokens stay on your TV (tokens are encrypted). There are no servers run by the developer.</li>
+        <li>No ads, no analytics, no tracking. Your data is never sold or shared, and never used to train AI models.</li>
+        <li>You can delete everything from the app (Clear, Disconnect account) and revoke access in your
+          <a href="https://myaccount.google.com/permissions">Google Account</a>.</li>
+      </ul>
+      <p>The use of information received from Photos APIs will adhere to the Google User Data Policy, including the Limited Use requirements.
+        Foto TV's use and transfer of information received from Google APIs adheres to the
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+        including the Limited Use requirements.</p>
+      <p><a href="privacy.html#en">Privacy policy</a> &middot;
+        <a href="https://github.com/armando-basile/google-photos/releases/latest">Download the latest APK</a> &middot;
+        <a href="https://github.com/armando-basile/google-photos">Source code</a></p>
+    </section>
+
+    <hr>
+
+    <section id="it" lang="it">
+      <h1>Foto TV</h1>
+      <p class="tag">Le foto che scegli in Google Foto, anche degli album condivisi, sulla tua Fire TV.</p>
+
+      <h2>Cosa fa</h2>
+      <p>Foto TV è un'app Android TV gratuita e open source per Amazon Fire TV. Scegli foto o album in Google Foto dal telefono
+        e l'app li mostra sulla TV in una griglia, a schermo intero e in presentazione automatica.</p>
+
+      <h2>Come funziona</h2>
+      <ol>
+        <li>La TV mostra un codice QR: inquadralo con il telefono.</li>
+        <li>Accedi a Google e approva l'accesso in sola lettura alle foto che scegli
+          (ambito <code>photospicker.mediaitems.readonly</code>, Google Photos Picker API).</li>
+        <li>In Google Foto scegli le foto o gli album da portare sulla TV.</li>
+        <li>Le foto scelte vengono salvate in una cartella privata sulla TV e mostrate lì.</li>
+      </ol>
+
+      <h2>I tuoi dati</h2>
+      <ul>
+        <li>L'app riceve solo le foto che selezioni esplicitamente, non vede il resto della libreria.</li>
+        <li>Foto e token restano sulla TV (i token sono cifrati). Non ci sono server gestiti dallo sviluppatore.</li>
+        <li>Nessuna pubblicità, analisi d'uso o tracciamento. I dati non sono venduti né condivisi e non servono ad addestrare modelli di IA.</li>
+        <li>Puoi cancellare tutto dall'app (Svuota, Scollega account) e revocare l'accesso dall'
+          <a href="https://myaccount.google.com/permissions">Account Google</a>.</li>
+      </ul>
+      <p>L'uso delle informazioni ricevute dalle API di Google Foto rispetta la Google User Data Policy, inclusi i requisiti di Limited Use
+        (<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>).</p>
+      <p><a href="privacy.html#it">Informativa sulla privacy</a> &middot;
+        <a href="https://github.com/armando-basile/google-photos/releases/latest">Scarica l'ultimo APK</a> &middot;
+        <a href="https://github.com/armando-basile/google-photos">Codice sorgente</a></p>
+    </section>
+  </div>
 </main>
 <script>
 (() => {
@@ -45,6 +128,8 @@
   const redirectUri = location.origin + location.pathname;
 
   const show = (title, msg) => {
+    document.getElementById("landing").hidden = true;
+    document.getElementById("status").hidden = false;
     document.getElementById("title").textContent = title;
     document.getElementById("msg").textContent = msg || "";
   };
@@ -78,8 +163,7 @@
       show("Apro l'accesso a Google...");
       location.replace("https://accounts.google.com/o/oauth2/v2/auth?" + auth.toString());
     } else {
-      show("Foto TV", "Scansiona il codice QR mostrato sulla TV per collegare il tuo account Google Foto.");
-      document.getElementById("links").hidden = false;
+      // Nessun parametro OAuth: resta visibile la pagina di presentazione.
     }
   } catch (e) {
     show("Errore", e.message);

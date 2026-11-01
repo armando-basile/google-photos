@@ -15,12 +15,17 @@ class TokenStore(context: Context) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
     var refreshToken: String?
-        get() = prefs.getString(KEY, null)?.let { runCatching { decrypt(it) }.getOrNull() }
-        set(value) {
-            prefs.edit().apply {
-                if (value == null) remove(KEY) else putString(KEY, encrypt(value))
-            }.apply()
-        }
+        get() = getSecret(KEY)
+        set(value) = setSecret(KEY, value)
+
+    fun getSecret(name: String): String? =
+        prefs.getString(name, null)?.let { runCatching { decrypt(it) }.getOrNull() }
+
+    fun setSecret(name: String, value: String?) {
+        prefs.edit().apply {
+            if (value == null) remove(name) else putString(name, encrypt(value))
+        }.apply()
+    }
 
     private fun secretKey(): SecretKey {
         val ks = KeyStore.getInstance(KEYSTORE).apply { load(null) }

@@ -17,7 +17,7 @@ navigabile con il telecomando, visore a schermo intero e presentazione automatic
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.1-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Compose%20for%20TV-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 
-[**Scarica l'ultimo APK**](https://github.com/armando-basile/google-photos/releases/latest) · [Funzioni](#funzioni) · [Come funziona](#come-funziona) · [Installazione](#installazione) · [Compilare dal sorgente](#compilare-dal-sorgente)
+[**Scarica l'ultimo APK**](https://github.com/armando-basile/google-photos/releases/latest) · [Funzioni](#funzioni) · [Come funziona](#come-funziona) · [Installazione](#installazione) · [Configurazione API Google](#configurazione-del-servizio-api-google-foto) · [Compilare dal sorgente](#compilare-dal-sorgente)
 
 </div>
 
@@ -83,20 +83,54 @@ Nella galleria apri **Impostazioni** per cercare una nuova versione con **Cerca 
 **Controlla all'avvio**. Se esiste una release più recente l'app la scarica, verifica SHA-256, pacchetto, versione e firma,
 poi la passa all'installer di sistema. Android chiede una volta il permesso *Installa app sconosciute* per Foto TV.
 
-## Configurazione iniziale (una sola volta, per lo sviluppatore)
+## Configurazione del servizio API Google Foto
 
-L'accesso a Google Foto richiede un client OAuth registrato in un progetto Google Cloud.
+Per leggere le foto scelte dall'utente, Google richiede un **client OAuth** registrato in un progetto Google Cloud.
+Alla fine ottieni due valori: l'**ID client** e il **client secret**. La procedura è la stessa per lo sviluppatore e per chi
+vuole usare l'app con le proprie credenziali, e si fa una volta sola dal computer (la console non è comoda da telefono o TV).
 
-1. Nella [console Google Cloud](https://console.cloud.google.com/) crea un progetto e abilita la **Google Photos Picker API**.
-2. Configura la schermata di consenso OAuth, aggiungi lo scope `photospicker.mediaitems.readonly` e,
-   in modalità *Testing*, aggiungi gli account Google degli utenti come **utenti di test**.
-3. Crea un client OAuth di tipo **Applicazione web** con URI di reindirizzamento
-   `https://armando-basile.github.io/google-photos/` (con lo slash finale).
-4. In *Settings → Pages* del repository pubblica la cartella `/docs` del ramo `main`.
+1. **Progetto.** Apri la [console Google Cloud](https://console.cloud.google.com/projectcreate), crea un progetto (per esempio *FotoTV*) e selezionalo.
+2. **Abilita l'API.** Apri la pagina della [Google Photos Picker API](https://console.cloud.google.com/apis/library/photospicker.googleapis.com) e clicca **Abilita**.
+3. **Schermata di consenso.** In [Google Auth Platform](https://console.cloud.google.com/auth/overview) clicca **Inizia** e inserisci nome dell'app e email di assistenza.
+   In *Pubblico* scegli **Esterno**, aggiungi un'email di contatto, accetta i termini e crea.
+4. **Ambito.** In **Accesso ai dati → Aggiungi o rimuovi ambiti** vai in fondo a *Aggiungi manualmente gli ambiti*, incolla
+   ```
+   https://www.googleapis.com/auth/photospicker.mediaitems.readonly
+   ```
+   e clicca **Aggiungi alla tabella**, poi **Aggiorna** e **Salva**.
+5. **Utenti di test.** In **Pubblico → Utenti di test → Add users** aggiungi gli account Google che useranno l'app (fino a 100).
+6. **Client OAuth.** In **Client → Crea client** scegli tipo **Applicazione web** e un nome a piacere. Lascia vuote le *Origini JavaScript autorizzate*.
+   In **URI di reindirizzamento autorizzati** clicca *Aggiungi URI* e inserisci, con lo slash finale e identico:
+   ```
+   https://armando-basile.github.io/google-photos/
+   ```
+   Clicca **Crea**: compaiono **ID client** (finisce con `.apps.googleusercontent.com`) e **Client secret**.
+   Copia subito il secret: Google potrebbe non mostrarlo di nuovo, e in quel caso se ne crea uno nuovo dalla pagina del client.
+7. **Facoltativo: evitare la scadenza.** Finché lo stato resta *Testing*, il collegamento scade dopo 7 giorni. In **Pubblico → Pubblica app**
+   passa a *In produzione*: non serve la verifica di Google, restano l'avviso "app non verificata" (Avanzate → Continua) e il limite di 100 utenti.
 
-Gli utenti finali non devono toccare la console. Se il progetto resta in modalità *Testing*,
-il refresh token scade dopo 7 giorni: per evitarlo imposta lo stato su *In produzione*
-(senza verifica restano l'avviso "app non verificata" e il limite di 100 utenti).
+La pagina di reindirizzamento è statica, non contiene segreti e riceve l'ID client come parametro: puoi usare quella indicata sopra
+anche per il tuo client, senza ospitare nulla. Se pubblichi un fork, attiva *Settings → Pages* sulla cartella `/docs` del ramo `main`
+e imposta il tuo indirizzo in `PAIRING_PAGE_URL`.
+
+### Dove inserire i due valori
+
+- **Sulla TV (chi usa l'app):** **Impostazioni → Imposta credenziali dal telefono**, oppure **Usa le mie credenziali Google** nella schermata del QR.
+  Inquadra il codice e incolla ID client e client secret nel modulo sul telefono: la TV ti chiederà di rifare il collegamento.
+  I valori sono salvati cifrati sulla TV e il modulo viaggia solo sulla rete locale. **Ripristina predefinite** torna a quelli inclusi nell'app.
+- **Compilando dal sorgente:** `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` in `local.properties` (vedi [Compilare dal sorgente](#compilare-dal-sorgente)).
+- **Release su GitHub:** stessi nomi, come segreti dell'environment **Main** (vedi [Pubblicare una release](#pubblicare-una-release)).
+
+### Problemi comuni
+
+| Messaggio o sintomo | Causa e rimedio |
+| --- | --- |
+| `redirect_uri_mismatch` | L'URI nel client non coincide con la pagina usata: controlla lo slash finale e di averlo messo in *URI di reindirizzamento*, non nelle *Origini JavaScript*. |
+| "Origine non valida: gli URI non devono contenere un percorso" | Hai inserito l'URL nel campo *Origini JavaScript autorizzate*: svuotalo e usa il campo degli URI di reindirizzamento. |
+| `access_denied` o "l'app non ha completato la procedura di verifica" | L'account non è tra gli **utenti di test**: aggiungilo in *Pubblico*. |
+| Dopo circa una settimana la TV chiede di nuovo il collegamento | Il progetto è in *Testing*: passa a *In produzione* (passo 7). |
+| Errore 403 o "API not enabled" alla scelta delle foto | La Photos Picker API non è abilitata nel progetto del client (passo 2). |
+| Il telefono non torna alla TV | Telefono e TV devono essere sulla stessa rete Wi-Fi e il router non deve isolare i dispositivi (*AP isolation*). |
 
 ## Compilare dal sorgente
 
@@ -142,6 +176,11 @@ solo con una build firmata con la stessa chiave.
 
 > Il client secret finisce nell'APK pubblicato e va considerato non riservato.
 > Per questo l'URI di reindirizzamento registrato nel client deve restare limitato alla pagina in `docs/`.
+
+## Privacy
+
+Foto TV non ha server propri: foto e token restano sulla TV, non ci sono pubblicità né analisi d'uso.
+Leggi l'[informativa sulla privacy](https://armando-basile.github.io/google-photos/privacy.html) (italiano e inglese, sorgente in [docs/privacy.html](docs/privacy.html)).
 
 ## Tecnologie
 

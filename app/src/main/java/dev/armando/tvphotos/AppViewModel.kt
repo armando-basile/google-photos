@@ -5,10 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.armando.tvphotos.auth.AuthExpiredException
 import dev.armando.tvphotos.auth.GoogleAuth
+import dev.armando.tvphotos.auth.OAuthConfig
+import dev.armando.tvphotos.auth.OAuthConfigStore
 import dev.armando.tvphotos.auth.PairingServer
 import dev.armando.tvphotos.auth.Pkce
+import dev.armando.tvphotos.auth.SetupServer
 import dev.armando.tvphotos.auth.TokenStore
 import dev.armando.tvphotos.data.LocalPhoto
+import dev.armando.tvphotos.data.PhotoCollection
 import dev.armando.tvphotos.data.PhotoLibrary
 import dev.armando.tvphotos.picker.PickerApi
 import dev.armando.tvphotos.ui.NetworkUtils
@@ -31,31 +35,48 @@ import java.util.concurrent.TimeUnit
 
 sealed interface UiState {
     data object Starting : UiState
+    data object Consent : UiState
     data class Pairing(val url: String?, val error: String?) : UiState
     data class Picking(val pickerUri: String?, val error: String?) : UiState
     data class Importing(val done: Int, val total: Int) : UiState
     data object Gallery : UiState
 }
 
+/** Schermata di inserimento delle credenziali Google dal telefono. */
+data class SetupUi(val url: String?, val error: String?)
+
 class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val http = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
-    private val auth = GoogleAuth(http, TokenStore(app))
+    private val tokenStore = TokenStore(app)
+    val oauthConfig = OAuthConfigStore(tokenStore)
+    private val auth = GoogleAuth(http, tokenStore) { oauthConfig.config.value }
     private val picker = PickerApi(http, auth)
     private val library = PhotoLibrary(app)
     val updates = UpdateManager(app, viewModelScope)
+    private val prefs = app.getSharedPreferences("settings", Application.MODE_PRIVATE)
 
     private val _state = MutableStateFlow<UiState>(UiState.Starting)
     val state: StateFlow<UiState> = _state
 
     val photos: StateFlow<List<LocalPhoto>> = library.photos
+    val collections: StateFlow<List<PhotoCollection>> = library.collections
+
+    private val _openCollection = MutableStateFlow<String?>(null)
+    val openCollection: StateFlow<String?> = _openCollection
+
+    private var pickTarget: String? = null
 
     private val _viewerIndex = MutableStateFlow<Int?>(null)
     val viewerIndex: StateFlow<Int?> = _viewerIndex
 
     private var job: Job? = null
+    private var setupJob: Job? = null
+
+    private val _setup = MutableStateFlow<SetupUi?>(null)
+    val setup: StateFlow<SetupUi?> = _setup
 
     private val _settingsOpen = MutableStateFlow(false)
     val settingsOpen: StateFlow<Boolean> = _settingsOpen
@@ -63,8 +84,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     init {
         if (updates.checkOnStartup.value) updates.check(manual = false)
         when {
-            BuildConfig.GOOGLE_CLIENT_ID.isBlank() ->
-                _state.value = UiState.Pairing(null, "Manca GOOGLE_CLIENT_ID in local.properties")
+            !oauthConfig.config.value.isConfigured -> _state.value = UiState.Pairing(null, NOT_CONFIGURED)
             !auth.isPaired -> startPairing()
             library.photos.value.isEmpty() -> startPicking()
             else -> _state.value = UiState.Gallery
@@ -88,8 +108,24 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearLibrary() {
         library.clear()
+        _openCollection.value = null
         startPicking()
     }
+
+    fun openCollection(id: String) { _openCollection.value = id }
+
+    fun closeCollection() { _openCollection.value = null }
+
+    /** Elimina dalla TV le foto di una raccolta; se era l'ultima, si torna alla scelta delle foto. */
+    fun deleteCollection(id: String) {
+        library.deleteCollection(id)
+        _viewerIndex.value = null
+        _openCollection.value = null
+        if (library.collections.value.isEmpty()) startPicking()
+    }
+
+    /** Nuova scelta nel Picker: aggiunge le foto nuove e toglie quelle non più selezionate. */
+    fun syncCollection(id: String) = pick(id)
 
     fun signOut() {
         job?.cancel()
@@ -98,8 +134,73 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         startPairing()
     }
 
+    /** Apre il modulo sul telefono per inserire le proprie credenziali Google. */
+    fun startSetup() {
+        job?.cancel()
+        setupJob?.cancel()
+        setupJob = viewModelScope.launch {
+            val token = Pkce.randomUrlSafe(16)
+            val saved = CompletableDeferred<Unit>()
+            var server: SetupServer? = null
+            try {
+                _setup.value = SetupUi(null, null)
+                val ip = NetworkUtils.localIpv4() ?: throw IOException("La TV non è connessa a una rete locale")
+                server = startSetupServer(token) { id, secret, page ->
+                    OAuthConfigStore.validate(id, secret, page) ?: run {
+                        oauthConfig.save(id, secret, page)
+                        saved.complete(Unit)
+                        null
+                    }
+                } ?: throw IOException("Nessuna porta locale disponibile")
+                _setup.value = SetupUi("http://$ip:${server.listeningPort}/setup/$token", null)
+
+                saved.await()
+                useNewCredentials()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _setup.value = SetupUi(null, e.message ?: "Errore sconosciuto")
+            } finally {
+                withContext(NonCancellable) {
+                    delay(500)
+                    server?.stop()
+                }
+            }
+        }
+    }
+
+    fun cancelSetup() {
+        setupJob?.cancel()
+        _setup.value = null
+        if (state.value is UiState.Pairing) startPairing()
+    }
+
+    /** Torna alle credenziali incluse nella build. */
+    fun resetCredentials() {
+        oauthConfig.reset()
+        useNewCredentials()
+    }
+
+    // Il refresh token appartiene al vecchio client OAuth: serve un nuovo collegamento.
+    private fun useNewCredentials() {
+        auth.signOut()
+        _setup.value = null
+        _settingsOpen.value = false
+        startPairing()
+    }
+
+    /** L'informativa mostrata prima di collegare Google va accettata con un'azione esplicita. */
+    fun acceptConsent() {
+        prefs.edit().putBoolean(KEY_CONSENT, true).apply()
+        startPairing()
+    }
+
     fun startPairing() {
         job?.cancel()
+        if (!prefs.getBoolean(KEY_CONSENT, false)) {
+            _state.value = UiState.Consent
+            return
+        }
         job = viewModelScope.launch {
             val verifier = Pkce.randomUrlSafe(48)
             val nonce = Pkce.randomUrlSafe(16)
@@ -107,11 +208,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             var server: PairingServer? = null
             try {
                 _state.value = UiState.Pairing(null, null)
+                val config = oauthConfig.config.value
+                if (!config.isConfigured) throw IOException(NOT_CONFIGURED)
                 val ip = NetworkUtils.localIpv4() ?: throw IOException("La TV non è connessa a una rete locale")
                 server = startServer(nonce) { result.complete(it) }
                     ?: throw IOException("Nessuna porta locale disponibile")
                 val tv = "$ip:${server.listeningPort}"
-                _state.value = UiState.Pairing(pairingUrl(tv, nonce, Pkce.challenge(verifier)), null)
+                _state.value = UiState.Pairing(pairingUrl(config, tv, nonce, Pkce.challenge(verifier)), null)
 
                 val code = result.await().getOrThrow()
                 auth.exchangeCode(code, verifier)
@@ -129,7 +232,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun startPicking() {
+    fun startPicking() = pick(null)
+
+    fun retryPicking() = pick(pickTarget)
+
+    private fun pick(collectionId: String?) {
+        pickTarget = collectionId
         job?.cancel()
         job = viewModelScope.launch {
             var sessionId: String? = null
@@ -150,11 +258,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
                 _state.value = UiState.Importing(0, 0)
                 val items = picker.listItems(session.id)
-                library.import(picker, items) { done, total -> _state.value = UiState.Importing(done, total) }
+                val result = library.import(picker, items, collectionId) { done, total ->
+                    _state.value = UiState.Importing(done, total)
+                }
 
-                _state.value =
-                    if (library.photos.value.isEmpty()) UiState.Picking(null, "Nessuna foto importata (i video non sono supportati)")
-                    else UiState.Gallery
+                if (collectionId == null && result.added == 0) {
+                    _state.value = UiState.Picking(null, "Nessuna foto importata (i video non sono supportati)")
+                } else {
+                    _openCollection.value = collectionId
+                    _state.value = UiState.Gallery
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AuthExpiredException) {
@@ -184,12 +297,30 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         return null
     }
 
-    private fun pairingUrl(tv: String, nonce: String, challenge: String): String {
+    private fun startSetupServer(token: String, onSubmit: (String, String, String) -> String?): SetupServer? {
+        for (port in 8765..8785) {
+            val server = SetupServer(port, token, BuildConfig.PAIRING_PAGE_URL, onSubmit)
+            try {
+                server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+                return server
+            } catch (_: IOException) {
+                continue
+            }
+        }
+        return null
+    }
+
+    private fun pairingUrl(config: OAuthConfig, tv: String, nonce: String, challenge: String): String {
         fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
-        return BuildConfig.PAIRING_PAGE_URL +
-            "?cid=${enc(BuildConfig.GOOGLE_CLIENT_ID)}&cc=${enc(challenge)}&tv=${enc(tv)}&n=${enc(nonce)}"
+        return config.pageUrl +
+            "?cid=${enc(config.clientId)}&cc=${enc(challenge)}&tv=${enc(tv)}&n=${enc(nonce)}"
     }
 
     private fun seconds(value: String?, default: Double): Long =
         ((value?.removeSuffix("s")?.toDoubleOrNull() ?: default) * 1000).toLong()
+
+    private companion object {
+        const val KEY_CONSENT = "privacy_consent_v1"
+        const val NOT_CONFIGURED = "Credenziali Google non configurate: inseriscile dal telefono"
+    }
 }
