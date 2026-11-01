@@ -19,7 +19,8 @@ data class PollingConfig(val pollInterval: String? = null, val timeoutIn: String
 @Serializable
 data class PickerSession(
     val id: String,
-    val pickerUri: String,
+    // Dopo "Fine" Google non restituisce più il pickerUri.
+    val pickerUri: String = "",
     val pollingConfig: PollingConfig? = null,
     val mediaItemsSet: Boolean = false,
 )
