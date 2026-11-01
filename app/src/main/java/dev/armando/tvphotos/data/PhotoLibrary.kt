@@ -57,13 +57,15 @@ class PhotoLibrary(context: Context) {
     fun fileOf(photo: LocalPhoto): File = File(dir, photo.file)
 
     /**
-     * Con [collectionId] nullo crea una nuova raccolta; altrimenti sincronizza quella esistente:
-     * scarica le foto nuove e rimuove quelle non più presenti nella selezione.
+     * Con [collectionId] nullo crea una nuova cartella chiamata [newName]; altrimenti importa in quella esistente.
+     * Con [removeMissing] le foto della cartella non più presenti nella selezione vengono rimosse (sincronizzazione).
      */
     suspend fun import(
         api: PickerApi,
         items: List<PickedItem>,
         collectionId: String?,
+        newName: String?,
+        removeMissing: Boolean,
         onProgress: (done: Int, total: Int) -> Unit,
     ): ImportResult = withContext(Dispatchers.IO) {
         val id = collectionId ?: UUID.randomUUID().toString()
@@ -74,7 +76,8 @@ class PhotoLibrary(context: Context) {
         var removed = 0
         try {
             if (_collections.value.none { it.id == id }) {
-                _collections.value = _collections.value + PhotoCollection(id, defaultName(), System.currentTimeMillis())
+                val name = newName?.trim()?.take(60)?.ifBlank { null } ?: defaultName()
+                _collections.value = _collections.value + PhotoCollection(id, name, System.currentTimeMillis())
             }
             todo.forEachIndexed { i, item ->
                 onProgress(i, todo.size)
@@ -93,7 +96,7 @@ class PhotoLibrary(context: Context) {
                     }
                     .onFailure { if (it is AuthExpiredException) throw it }
             }
-            if (collectionId != null) {
+            if (removeMissing && collectionId != null) {
                 val keep = usable.mapTo(HashSet()) { it.id }
                 val gone = _photos.value.filter { it.collectionId == id && it.id !in keep }
                 gone.forEach { fileOf(it).delete() }
@@ -110,6 +113,14 @@ class PhotoLibrary(context: Context) {
         }
         onProgress(todo.size, todo.size)
         ImportResult(id, added, removed)
+    }
+
+    /** Un nome vuoto non cambia nulla; il nome è limitato a 60 caratteri. */
+    fun renameCollection(id: String, name: String) {
+        val clean = name.trim().take(60)
+        if (clean.isEmpty()) return
+        _collections.value = _collections.value.map { if (it.id == id) it.copy(name = clean) else it }
+        save()
     }
 
     fun deleteCollection(id: String) {
@@ -143,7 +154,7 @@ class PhotoLibrary(context: Context) {
         indexFile.writeText(json.encodeToString(LibraryIndex.serializer(), LibraryIndex(_collections.value, _photos.value)))
     }
 
-    private fun defaultName(): String =
+    fun defaultName(): String =
         "Selezione del " + SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
     private fun sha1(s: String): String =

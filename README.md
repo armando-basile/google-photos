@@ -24,18 +24,18 @@ navigabile con il telecomando, visore a schermo intero e presentazione automatic
 ## Perché Foto TV?
 
 La Fire TV Stick non ha l'app Google Foto e non ha i Google Play Services. Foto TV usa
-l'API ufficiale **Google Photos Picker**: scegli foto e album dal telefono e l'app li
+l'API ufficiale **Google Photos Picker**: scegli le foto dal telefono (anche cercando il titolo di un album) e l'app le
 mostra sulla TV, senza digitare password con il telecomando.
 
 - Nessun account o password da inserire sulla TV: basta inquadrare un codice QR.
-- Funziona anche con gli **album condivisi**, perché la selezione avviene in Google Foto.
+- Funziona anche con le foto degli **album condivisi**: in Google Foto cerchi il titolo dell'album e selezioni le foto.
 - Le foto scelte vengono salvate sulla TV e restano disponibili senza nuova selezione.
 - Nessuna pubblicità, nessuna analisi d'uso, nessun server intermedio.
 
 ## Funzioni
 
 - **Collegamento con QR code**: la TV mostra un codice, il telefono accede a Google e approva.
-- **Selezione dal telefono** di foto e album tramite il Picker ufficiale di Google Foto.
+- **Selezione dal telefono** tramite il Picker ufficiale di Google Foto: mostra le foto recenti e permette di cercare per parole chiave, date o titolo di un album.
 - **Griglia** navigabile con il telecomando.
 - **Visore a schermo intero** con frecce sinistra e destra, e **presentazione automatica** con OK.
 - **Aggiungi, svuota e scollega** direttamente dall'app.

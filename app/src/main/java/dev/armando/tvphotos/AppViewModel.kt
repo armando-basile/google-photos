@@ -35,11 +35,18 @@ import java.util.concurrent.TimeUnit
 
 sealed interface UiState {
     data object Starting : UiState
+    data object ChooseFolder : UiState
     data object Consent : UiState
     data class Pairing(val url: String?, val error: String?) : UiState
     data class Picking(val pickerUri: String?, val error: String?) : UiState
     data class Importing(val done: Int, val total: Int) : UiState
     data object Gallery : UiState
+}
+
+/** Dove finiranno le foto scelte nel Picker. */
+sealed interface PickTarget {
+    data class NewFolder(val name: String?) : PickTarget
+    data class Existing(val id: String, val replace: Boolean) : PickTarget
 }
 
 /** Schermata di inserimento delle credenziali Google dal telefono. */
@@ -67,7 +74,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val _openCollection = MutableStateFlow<String?>(null)
     val openCollection: StateFlow<String?> = _openCollection
 
-    private var pickTarget: String? = null
+    private var pickTarget: PickTarget = PickTarget.NewFolder(null)
 
     private val _viewerIndex = MutableStateFlow<Int?>(null)
     val viewerIndex: StateFlow<Int?> = _viewerIndex
@@ -125,7 +132,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Nuova scelta nel Picker: aggiunge le foto nuove e toglie quelle non più selezionate. */
-    fun syncCollection(id: String) = pick(id)
+    fun syncCollection(id: String) = pick(PickTarget.Existing(id, replace = true))
+
+    fun suggestFolderName(): String = library.defaultName()
+
+    fun renameCollection(id: String, name: String) = library.renameCollection(id, name)
+
+    /** Aggiunge le foto scelte a una cartella esistente, senza toccare quelle già presenti. */
+    fun pickInto(id: String) = pick(PickTarget.Existing(id, replace = false))
+
+    fun pickNewFolder(name: String) = pick(PickTarget.NewFolder(name))
 
     fun signOut() {
         job?.cancel()
@@ -232,12 +248,16 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun startPicking() = pick(null)
+    /** Chiede sempre dove mettere le foto; senza cartelle chiede il nome della prima. */
+    fun startPicking() {
+        job?.cancel()
+        _state.value = UiState.ChooseFolder
+    }
 
     fun retryPicking() = pick(pickTarget)
 
-    private fun pick(collectionId: String?) {
-        pickTarget = collectionId
+    private fun pick(target: PickTarget) {
+        pickTarget = target
         job?.cancel()
         job = viewModelScope.launch {
             var sessionId: String? = null
@@ -258,14 +278,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
                 _state.value = UiState.Importing(0, 0)
                 val items = picker.listItems(session.id)
-                val result = library.import(picker, items, collectionId) { done, total ->
+                val result = library.import(
+                    picker,
+                    items,
+                    collectionId = (target as? PickTarget.Existing)?.id,
+                    newName = (target as? PickTarget.NewFolder)?.name,
+                    removeMissing = (target as? PickTarget.Existing)?.replace == true,
+                ) { done, total ->
                     _state.value = UiState.Importing(done, total)
                 }
 
-                if (collectionId == null && result.added == 0) {
+                if (target is PickTarget.NewFolder && result.added == 0) {
                     _state.value = UiState.Picking(null, "Nessuna foto importata (i video non sono supportati)")
                 } else {
-                    _openCollection.value = collectionId
+                    _openCollection.value = result.collectionId
                     _state.value = UiState.Gallery
                 }
             } catch (e: CancellationException) {

@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,12 +18,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed as listItemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.key.Key
@@ -51,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Button
 import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
@@ -83,9 +91,18 @@ fun AppRoot(vm: AppViewModel) {
     val oauthConfig by vm.oauthConfig.config.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+      CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
         when (val s = state) {
             UiState.Starting -> CenterText("Avvio...")
             UiState.Consent -> ConsentScreen(onAccept = vm::acceptConsent)
+            UiState.ChooseFolder -> ChooseFolderScreen(
+                collections = collections,
+                photos = photos,
+                suggestedName = remember { vm.suggestFolderName() },
+                onExisting = vm::pickInto,
+                onNew = vm::pickNewFolder,
+                onCancel = vm::showGallery,
+            )
             is UiState.Pairing -> PairingScreen(s, onRetry = vm::startPairing, onCredentials = vm::startSetup)
             is UiState.Picking -> PickingScreen(
                 state = s,
@@ -120,6 +137,7 @@ fun AppRoot(vm: AppViewModel) {
                         onOpenPhoto = vm::openViewer,
                         onBack = vm::closeCollection,
                         onSync = { vm.syncCollection(open.id) },
+                        onRename = { vm.renameCollection(open.id, it) },
                         onDelete = { vm.deleteCollection(open.id) },
                     )
                 }
@@ -138,6 +156,7 @@ fun AppRoot(vm: AppViewModel) {
             }
         }
         setup?.let { SetupScreen(it, onRetry = vm::startSetup, onCancel = vm::cancelSetup) }
+      }
     }
 }
 
@@ -205,11 +224,10 @@ private fun ConsentScreen(onAccept: () -> Unit) {
     val accept = remember { FocusRequester() }
     LaunchedEffect(Unit) { accept.requestFocus() }
     Column(
-        Modifier.fillMaxSize().padding(horizontal = 96.dp, vertical = 48.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(stringResource(R.string.consent_title), style = MaterialTheme.typography.displaySmall)
-        Spacer(Modifier.height(4.dp))
+        Text(stringResource(R.string.consent_title), style = MaterialTheme.typography.headlineMedium)
         listOf(
             R.string.consent_access,
             R.string.consent_storage,
@@ -226,6 +244,71 @@ private fun ConsentScreen(onAccept: () -> Unit) {
             Button(onClick = { activity?.finish() }) { Text(stringResource(R.string.consent_exit)) }
         }
     }
+}
+
+@Composable
+private fun ChooseFolderScreen(
+    collections: List<PhotoCollection>,
+    photos: List<LocalPhoto>,
+    suggestedName: String,
+    onExisting: (String) -> Unit,
+    onNew: (String) -> Unit,
+    onCancel: () -> Unit,
+) {
+    val hasFolders = collections.isNotEmpty()
+    if (hasFolders) BackHandler(onBack = onCancel)
+    var name by remember { mutableStateOf(suggestedName) }
+    val first = remember { FocusRequester() }
+    val create = remember { FocusRequester() }
+    LaunchedEffect(hasFolders) { (if (hasFolders) first else create).requestFocus() }
+    Column(
+        Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            if (hasFolders) "Dove vuoi mettere le foto?" else "Come vuoi chiamare la cartella?",
+            style = MaterialTheme.typography.headlineMedium,
+        )
+        Text(
+            if (hasFolders) "Scegli una cartella sulla TV oppure creane una nuova. Le foto già presenti nella cartella restano."
+            else "Le foto che scegli verranno salvate in una cartella sulla TV con questo nome.",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            listItemsIndexed(collections, key = { _, c -> c.id }) { i, c ->
+                val count = photos.count { it.collectionId == c.id }
+                Button(
+                    onClick = { onExisting(c.id) },
+                    modifier = if (i == 0) Modifier.focusRequester(first) else Modifier,
+                ) { Text("${c.name} \u00b7 $count foto") }
+            }
+        }
+        Text(if (hasFolders) "Nuova cartella" else "Nome della cartella", style = MaterialTheme.typography.titleMedium)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            NameField(name, onChange = { name = it }, modifier = Modifier.weight(1f))
+            Button(onClick = { onNew(name) }, modifier = Modifier.focusRequester(create)) {
+                Text("Crea e scegli le foto")
+            }
+        }
+        if (hasFolders) Button(onClick = onCancel) { Text("Annulla") }
+    }
+}
+
+@Composable
+private fun NameField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    var focused by remember { mutableStateOf(false) }
+    val color = MaterialTheme.colorScheme.onBackground
+    BasicTextField(
+        value = value,
+        onValueChange = { onChange(it.take(60)) },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleMedium.copy(color = color),
+        cursorBrush = SolidColor(color),
+        modifier = modifier
+            .onFocusChanged { focused = it.isFocused }
+            .border(2.dp, if (focused) color else color.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+            .padding(12.dp),
+    )
 }
 
 @Composable
@@ -255,7 +338,7 @@ private fun PickingScreen(state: UiState.Picking, canCancel: Boolean, onCancel: 
         title = "Scegli le foto",
         steps = listOf(
             "Inquadra il codice con il telefono.",
-            "In Google Foto seleziona foto o album, anche condivisi.",
+            "In Google Foto cerca il titolo dell'album (anche condiviso) e seleziona le foto: gli album non compaiono nell'elenco.",
             "Premi Fine sul telefono: le foto arriveranno sulla TV.",
         ),
         qr = state.pickerUri,
@@ -379,10 +462,21 @@ private fun CollectionScreen(
     onOpenPhoto: (Int) -> Unit,
     onBack: () -> Unit,
     onSync: () -> Unit,
+    onRename: (String) -> Unit,
     onDelete: () -> Unit,
 ) {
     var confirmDelete by remember(collection.id) { mutableStateOf(false) }
-    BackHandler { if (confirmDelete) confirmDelete = false else onBack() }
+    var renaming by remember(collection.id) { mutableStateOf(false) }
+    var newName by remember(collection.id, renaming) { mutableStateOf(collection.name) }
+    val nameFocus = remember { FocusRequester() }
+    LaunchedEffect(renaming) { if (renaming) nameFocus.requestFocus() }
+    BackHandler {
+        when {
+            renaming -> renaming = false
+            confirmDelete -> confirmDelete = false
+            else -> onBack()
+        }
+    }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 32.dp)) {
         Row(
@@ -398,12 +492,24 @@ private fun CollectionScreen(
                 )
             }
             Button(onClick = onBack) { Text("Indietro") }
-            Button(onClick = onSync) { Text("Sincronizza") }
-            if (confirmDelete) {
-                Button(onClick = onDelete) { Text("Conferma: elimina dalla TV") }
-                Button(onClick = { confirmDelete = false }) { Text("Annulla") }
-            } else {
-                Button(onClick = { confirmDelete = true }) { Text("Elimina dalla TV") }
+        }
+        Spacer(Modifier.height(12.dp))
+        if (renaming) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                NameField(newName, onChange = { newName = it }, modifier = Modifier.weight(1f).focusRequester(nameFocus))
+                Button(onClick = { onRename(newName); renaming = false }) { Text("Salva nome") }
+                Button(onClick = { renaming = false }) { Text("Annulla") }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(onClick = onSync) { Text("Sincronizza") }
+                Button(onClick = { renaming = true }) { Text("Rinomina") }
+                if (confirmDelete) {
+                    Button(onClick = onDelete) { Text("Conferma: elimina dalla TV") }
+                    Button(onClick = { confirmDelete = false }) { Text("Annulla") }
+                } else {
+                    Button(onClick = { confirmDelete = true }) { Text("Elimina dalla TV") }
+                }
             }
         }
         Text(
