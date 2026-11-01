@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/icon.png" alt="Foto TV" width="120">
+
 # Foto TV
 
 **Sfoglia le tue foto di Google Foto, anche degli album condivisi, sulla Fire TV Stick.**
@@ -37,6 +39,7 @@ mostra sulla TV, senza digitare password con il telecomando.
 - **Griglia** navigabile con il telecomando.
 - **Visore a schermo intero** con frecce sinistra e destra, e **presentazione automatica** con OK.
 - **Aggiungi, svuota e scollega** direttamente dall'app.
+- **Aggiornamenti dalle release di GitHub**: controllo manuale o all'avvio, con verifica SHA-256 e della firma prima dell'installazione.
 - Il token di accesso è salvato **cifrato** con l'Android Keystore.
 
 ## Come funziona
@@ -73,6 +76,12 @@ sha256sum -c FotoTV-vX.Y.Z.apk.sha256
 ```
 
 **Requisiti:** Fire OS 6 / Android 7.1 (API 25) o successivo, telefono e TV sulla stessa rete Wi-Fi.
+
+### Aggiornamenti
+
+Nella galleria apri **Impostazioni** per cercare una nuova versione con **Cerca aggiornamenti**, oppure attiva
+**Controlla all'avvio**. Se esiste una release più recente l'app la scarica, verifica SHA-256, pacchetto, versione e firma,
+poi la passa all'installer di sistema. Android chiede una volta il permesso *Installa app sconosciute* per Foto TV.
 
 ## Configurazione iniziale (una sola volta, per lo sviluppatore)
 
@@ -112,8 +121,9 @@ adb connect <ip-della-fire-tv>
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-La build di release è firmata con una chiave letta dall'ambiente (`KEYSTORE_FILE`, `KEYSTORE_PASSWORD`,
-`KEY_ALIAS`, `KEY_PASSWORD`). Senza queste variabili un `assembleRelease` locale usa la chiave di debug.
+La build di release in locale è firmata con il keystore in `keys/` (non versionata): in `local.properties` imposta
+`KEYSTORE_FILE`, `KEY_ALIAS`, `KEYSTORE_PASSWORD` e `KEY_PASSWORD`. Nella CI gli stessi valori arrivano dall'ambiente.
+Senza la password del keystore un `assembleRelease` locale usa la chiave di debug.
 
 ### Pubblicare una release
 

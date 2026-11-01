@@ -56,6 +56,7 @@ import coil.request.ImageRequest
 import dev.armando.tvphotos.AppViewModel
 import dev.armando.tvphotos.UiState
 import dev.armando.tvphotos.data.LocalPhoto
+import dev.armando.tvphotos.update.UpdateState
 import kotlinx.coroutines.delay
 
 private const val SLIDESHOW_MS = 6000L
@@ -65,6 +66,8 @@ fun AppRoot(vm: AppViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
     val photos by vm.photos.collectAsStateWithLifecycle()
     val viewer by vm.viewerIndex.collectAsStateWithLifecycle()
+    val settingsOpen by vm.settingsOpen.collectAsStateWithLifecycle()
+    val update by vm.updates.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when (val s = state) {
@@ -87,10 +90,13 @@ fun AppRoot(vm: AppViewModel) {
                     onAdd = vm::startPicking,
                     onClear = vm::clearLibrary,
                     onSignOut = vm::signOut,
+                    updateTag = (update as? UpdateState.Available)?.info?.tag,
+                    onSettings = vm::openSettings,
                 )
                 viewer?.let { start ->
                     ViewerScreen(photos, start, vm::fileOf, onClose = vm::closeViewer)
                 }
+                if (settingsOpen) SettingsScreen(vm.updates, onClose = vm::closeSettings)
             }
         }
     }
@@ -179,6 +185,8 @@ private fun GalleryScreen(
     onAdd: () -> Unit,
     onClear: () -> Unit,
     onSignOut: () -> Unit,
+    updateTag: String?,
+    onSettings: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 32.dp)) {
         Row(
@@ -194,6 +202,9 @@ private fun GalleryScreen(
             Button(onClick = onAdd) { Text("Aggiungi foto") }
             Button(onClick = onClear) { Text("Svuota") }
             Button(onClick = onSignOut) { Text("Scollega account") }
+            Button(onClick = onSettings) {
+                Text(if (updateTag != null) "Impostazioni (aggiornamento $updateTag)" else "Impostazioni")
+            }
         }
         Spacer(Modifier.height(24.dp))
         LazyVerticalGrid(

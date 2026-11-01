@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A73E8"/>
+      <stop offset="1" stop-color="#0B3D91"/>
+    </linearGradient>
+    <linearGradient id="t1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8AB4F8"/><stop offset="1" stop-color="#4285F4"/></linearGradient>
+    <linearGradient id="t2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE293"/><stop offset="1" stop-color="#FBBC04"/></linearGradient>
+    <linearGradient id="t3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#81C995"/><stop offset="1" stop-color="#188038"/></linearGradient>
+    <linearGradient id="t4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6AEA9"/><stop offset="1" stop-color="#EA4335"/></linearGradient>
+    <linearGradient id="t5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D7AEFB"/><stop offset="1" stop-color="#A142F4"/></linearGradient>
+    <linearGradient id="t6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A8DAB5"/><stop offset="1" stop-color="#34A853"/></linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1130" cy="-30" r="260" fill="#FFFFFF" fill-opacity="0.06"/>
+  <circle cx="60" cy="660" r="220" fill="#FFFFFF" fill-opacity="0.06"/>
+
+  <svg x="80" y="80" width="150" height="150" viewBox="0 0 108 108">
+    <rect width="108" height="108" rx="24" fill="#FFFFFF" fill-opacity="0.14"/>
+    <g transform="translate(54 54) scale(0.85) translate(-54 -54)">
+      <rect x="24" y="30" width="60" height="42" rx="5" fill="#FFFFFF"/>
+      <rect x="28" y="34" width="52" height="34" rx="1" fill="#BBD6FB"/>
+      <circle cx="65" cy="44" r="5" fill="#FBBC04"/>
+      <path d="M28,68 L28,58 L42,45 L54,60 L62,52 L80,66 L80,68 Z" fill="#34A853"/>
+      <path d="M28,68 L28,63 L40,56 L52,68 Z" fill="#188038"/>
+      <rect x="51" y="72" width="6" height="3" fill="#FFFFFF"/>
+      <rect x="42" y="75" width="24" height="3" rx="1.5" fill="#FFFFFF"/>
+    </g>
+  </svg>
+
+  <text x="80" y="340" font-family="Roboto, sans-serif" font-weight="700" font-size="104" fill="#FFFFFF">Foto TV</text>
+  <text x="82" y="404" font-family="Roboto, sans-serif" font-size="36" fill="#FFFFFF" fill-opacity="0.92">Le tue foto di Google Foto,</text>
+  <text x="82" y="450" font-family="Roboto, sans-serif" font-size="36" fill="#FFFFFF" fill-opacity="0.92">anche gli album condivisi, sulla Fire TV.</text>
+
+  <rect x="80" y="496" width="236" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.16"/>
+  <text x="198" y="528" text-anchor="middle" font-family="Roboto, sans-serif" font-weight="500" font-size="24" fill="#FFFFFF">Android TV</text>
+  <rect x="332" y="496" width="236" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.16"/>
+  <text x="450" y="528" text-anchor="middle" font-family="Roboto, sans-serif" font-weight="500" font-size="24" fill="#FFFFFF">Open source</text>
+
+  <rect x="660" y="120" width="460" height="300" rx="22" fill="#0B1F4A"/>
+  <rect x="676" y="136" width="428" height="268" rx="10" fill="#10254F"/>
+  <rect x="690" y="150" width="124" height="116" rx="8" fill="url(#t1)"/>
+  <rect x="826" y="150" width="124" height="116" rx="8" fill="url(#t2)"/>
+  <rect x="962" y="150" width="128" height="116" rx="8" fill="url(#t3)"/>
+  <rect x="690" y="278" width="124" height="112" rx="8" fill="url(#t4)"/>
+  <rect x="826" y="278" width="124" height="112" rx="8" fill="url(#t5)"/>
+  <rect x="962" y="278" width="128" height="112" rx="8" fill="url(#t6)"/>
+  <circle cx="780" cy="182" r="14" fill="#FFFFFF" fill-opacity="0.8"/>
+  <path d="M826,266 L870,210 L900,246 L920,226 L950,266 Z" fill="#FFFFFF" fill-opacity="0.35"/>
+  <path d="M962,266 L1010,206 L1040,244 L1064,222 L1090,266 Z" fill="#FFFFFF" fill-opacity="0.35"/>
+  <path d="M690,390 L740,320 L780,368 L806,342 L814,390 Z" fill="#FFFFFF" fill-opacity="0.35"/>
+  <rect x="852" y="420" width="64" height="36" fill="#0B1F4A"/>
+  <rect x="796" y="450" width="176" height="14" rx="7" fill="#0B1F4A"/>
+
+  <text x="80" y="590" font-family="Roboto, sans-serif" font-size="26" fill="#FFFFFF" fill-opacity="0.75">github.com/armando-basile/google-photos</text>
+</svg>

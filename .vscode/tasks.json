@@ -1,0 +1,90 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+            "JAVA_HOME": "/usr/lib/jvm/temurin-21-jdk"
+        }
+    },
+    "inputs": [
+        {
+            "id": "fireTvIp",
+            "type": "promptString",
+            "description": "Indirizzo IP della Fire TV (Impostazioni > Fire TV > Info > Rete)",
+            "default": "192.168.1."
+        }
+    ],
+    "tasks": [
+        {
+            "label": "Build debug",
+            "type": "shell",
+            "command": "./gradlew assembleDebug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build release",
+            "type": "shell",
+            "command": "./gradlew assembleRelease",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Connect Fire TV",
+            "type": "shell",
+            "command": "adb connect ${input:fireTvIp}:5555",
+            "problemMatcher": []
+        },
+        {
+            "label": "Install debug on device",
+            "type": "shell",
+            "command": "adb install -r app/build/outputs/apk/debug/app-debug.apk",
+            "dependsOn": "Build debug",
+            "problemMatcher": []
+        },
+        {
+            "label": "Install release on device",
+            "type": "shell",
+            "command": "adb install -r app/build/outputs/apk/release/app-release.apk",
+            "dependsOn": "Build release",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run on device",
+            "type": "shell",
+            "command": "adb shell am start -n dev.armando.tvphotos/.MainActivity",
+            "dependsOn": "Install debug on device",
+            "problemMatcher": []
+        },
+        {
+            "label": "Logcat",
+            "type": "shell",
+            "command": "adb logcat -c && adb logcat --pid=$(adb shell pidof -s dev.armando.tvphotos)",
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Lint",
+            "type": "shell",
+            "command": "./gradlew lintDebug",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "./gradlew clean",
+            "problemMatcher": []
+        },
+        {
+            "label": "Regenerate icons (branding/*.svg -> PNG)",
+            "type": "shell",
+            "command": "inkscape branding/banner.svg --export-type=png -w 320 -h 180 -o app/src/main/res/drawable-xhdpi/banner.png && inkscape branding/banner.svg --export-type=png -w 480 -h 270 -o app/src/main/res/drawable-xxhdpi/banner.png && inkscape branding/social-preview.svg --export-type=png -w 1200 -h 630 -o docs/social-preview.png && inkscape branding/icon.svg --export-type=png -w 512 -h 512 -o docs/icon.png",
+            "problemMatcher": []
+        }
+    ]
+}

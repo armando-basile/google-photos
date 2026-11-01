@@ -12,6 +12,7 @@ import dev.armando.tvphotos.data.LocalPhoto
 import dev.armando.tvphotos.data.PhotoLibrary
 import dev.armando.tvphotos.picker.PickerApi
 import dev.armando.tvphotos.ui.NetworkUtils
+import dev.armando.tvphotos.update.UpdateManager
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -44,6 +45,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val auth = GoogleAuth(http, TokenStore(app))
     private val picker = PickerApi(http, auth)
     private val library = PhotoLibrary(app)
+    val updates = UpdateManager(app, viewModelScope)
 
     private val _state = MutableStateFlow<UiState>(UiState.Starting)
     val state: StateFlow<UiState> = _state
@@ -55,7 +57,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private var job: Job? = null
 
+    private val _settingsOpen = MutableStateFlow(false)
+    val settingsOpen: StateFlow<Boolean> = _settingsOpen
+
     init {
+        if (updates.checkOnStartup.value) updates.check(manual = false)
         when {
             BuildConfig.GOOGLE_CLIENT_ID.isBlank() ->
                 _state.value = UiState.Pairing(null, "Manca GOOGLE_CLIENT_ID in local.properties")
@@ -70,6 +76,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun openViewer(index: Int) { _viewerIndex.value = index }
 
     fun closeViewer() { _viewerIndex.value = null }
+
+    fun openSettings() { _settingsOpen.value = true }
+
+    fun closeSettings() { _settingsOpen.value = false }
 
     fun showGallery() {
         job?.cancel()

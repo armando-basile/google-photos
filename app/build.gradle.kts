@@ -36,15 +36,16 @@ android {
         )
     }
 
-    // La chiave di firma arriva dall'ambiente: nessun materiale della chiave nel repository.
-    val releaseKeystore = System.getenv("KEYSTORE_FILE")?.let(::file)
+    // Keystore in keys/ (non versionata); le password arrivano da local.properties o dall'ambiente (CI).
+    val releaseKeystore = rootProject.file(prop("KEYSTORE_FILE", "keys/appgroups-release.jks"))
+    val releaseStorePassword = prop("KEYSTORE_PASSWORD")
     signingConfigs {
-        if (releaseKeystore != null) {
+        if (releaseKeystore.exists() && releaseStorePassword.isNotBlank()) {
             create("release") {
                 storeFile = releaseKeystore
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+                storePassword = releaseStorePassword
+                keyAlias = prop("KEY_ALIAS", "appgroups")
+                keyPassword = prop("KEY_PASSWORD").ifBlank { releaseStorePassword }
             }
         }
     }
@@ -52,7 +53,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            // In locale, senza chiave di release, si usa la chiave di debug.
+            // Senza password del keystore si usa la chiave di debug (solo build locali).
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
